@@ -522,6 +522,443 @@ quota-common/src/main/java/com/example/check/
 
 ---
 
+## 新接口开发流程
+
+### 整体流程概览
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          新接口开发流程                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  步骤1: 分析需求          步骤2: 配置XML        步骤3: 开发/复用Check     │
+│  ┌─────────────┐        ┌─────────────┐       ┌─────────────┐            │
+│  │ 确定校验规则 │   →    │ 定义接口流程 │  →   │ 复用/新增   │            │
+│  └─────────────┘        └─────────────┘       └─────────────┘            │
+│                                                            │              │
+│                                                            ▼              │
+│  步骤5: 测试验证          步骤4: 开发Handler         步骤6: 接入调用     │
+│  ┌─────────────┐        ┌─────────────┐       ┌─────────────┐            │
+│  │ 单元测试    │   ←    │ 业务处理    │  ←   │ Controller  │            │
+│  └─────────────┘        └─────────────┘       └─────────────┘            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 步骤1: 分析需求
+
+在开发新接口前，需要明确：
+
+```
+1. 接口名称是什么？
+2. 需要哪些参数？
+3. 需要哪些校验？   → 复用现有 Check 还是新增？
+4. 需要哪些前置处理？  (日志、上下文填充等)
+5. 校验失败后的特殊处理？
+6. 业务动作是什么？  (订单创建？额度调整？)
+7. 是否需要白名单？
+```
+
+### 步骤2: 配置XML接口定义
+
+在 `interface-flow.xml` 中添加新接口配置：
+
+```xml
+<!-- 示例：新增一个"额度申请"接口 -->
+<interface name="apply_quota">
+    <!-- 1. 参数校验规则 -->
+    <param-validate>
+        <field name="userId" required="true"/>
+        <field name="quotaAmount" required="true" type="decimal" min="1000" max="1000000"/>
+        <field name="purpose" required="true" length="1,200"/>
+        <field name="guaranteeType" required="false"/>
+    </param-validate>
+
+    <!-- 2. 通用处理链 (可选) -->
+    <common-process>
+        <handler>logStart</handler>
+        <handler>contextFill</handler>
+    </common-process>
+
+    <!-- 3. 校验链 (核心) -->
+    <check-chain>
+        <check>PARAM_CHECK</check>        <!-- 复用: 参数校验 -->
+        <check>AUTH_CHECK</check>         <!-- 复用: 权限校验 -->
+        <check>RISK_CHECK</check>         <!-- 复用: 风控校验 -->
+        <check>STATUS_CHECK</check>       <!-- 复用: 状态校验 -->
+        <check>QUOTA_CHECK</check>        <!-- 新增: 额度校验 -->
+    </check-chain>
+
+    <!-- 4. 特殊处理链 (可选) -->
+    <special-process>
+        <handler>whiteListBreak</handler> <!-- 白名单处理 -->
+    </special-process>
+
+    <!-- 5. 业务动作链 -->
+    <biz-action>
+        <handler>applyQuota</handler>     <!-- 新增: 额度申请 -->
+        <handler>logFinish</handler>
+    </biz-action>
+</interface>
+```
+
+### 步骤3: 复用或新增校验 (Check)
+
+#### 3.1 复用现有校验
+
+如果现有校验满足需求，直接在 XML 中引用即可：
+
+```xml
+<check>AUTH_CHECK</check>     <!-- 直接复用 -->
+<check>RISK_CHECK</check>    <!-- 直接复用 -->
+```
+
+#### 3.2 新增自定义校验
+
+如果需要特殊校验，创建新的 Check 实现类：
+
+```java
+package com.example.check.checkimpl;
+
+import com.example.check.context.InvokeContext;
+import com.example.check.core.AbstractCheck;
+import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
+
+/**
+ * 额度校验器 - 自定义校验示例
+ *
+ * 校验内容：
+ *   - 申请额度是否在允许范围内
+ *   - 用户当前额度是否充足
+ *   - 额度使用率是否超标
+ */
+@Component("QUOTA_CHECK")  // XML中引用的名称
+public class QuotaCheck extends AbstractCheck {
+
+    @Override
+    public int level() {
+        return 6;  // 在AMOUNT_CHECK之后执行
+    }
+
+    @Override
+    protected void doCheck(InvokeContext ctx) {
+        // 获取请求对象
+        Object request = ctx.getRequest();
+        
+        // 获取请求中的额度参数
+        BigDecimal applyAmount = getApplyAmount(request);
+        
+        // 获取用户当前额度
+        BigDecimal currentQuota = getUserCurrentQuota(request);
+        
+        // 校验逻辑
+        if (applyAmount.compareTo(currentQuota) > 0) {
+            ctx.setPass(false);
+            ctx.setErrMsg("申请额度超过用户当前额度");
+            return;
+        }
+        
+        // 校验通过
+        ctx.setPass(true);
+    }
+    
+    private BigDecimal getApplyAmount(Object request) {
+        // 通过反射或直接类型转换获取参数
+        // TODO: 根据实际请求类型实现
+        return BigDecimal.ZERO;
+    }
+    
+    private BigDecimal getUserCurrentQuota(Object request) {
+        // TODO: 从数据库或缓存获取用户额度
+        return BigDecimal.ZERO;
+    }
+}
+```
+
+### 步骤4: 开发业务Handler
+
+#### 4.1 复用现有Handler
+
+```xml
+<handler>logStart</handler>
+<handler>logFinish</handler>
+```
+
+#### 4.2 新增业务Handler
+
+```java
+package com.example.check.handlerimpl;
+
+import com.example.check.context.InvokeContext;
+import com.example.check.core.Handler;
+import org.springframework.stereotype.Component;
+
+/**
+ * 额度申请处理器
+ *
+ * 功能：
+ *   - 创建额度申请记录
+ *   - 触发额度审批流程
+ *   - 发送通知
+ */
+@Component("applyQuota")  // XML中引用的名称
+public class ApplyQuotaHandler implements Handler {
+
+    @Override
+    public void handle(InvokeContext ctx) {
+        // 获取请求参数
+        Object request = ctx.getRequest();
+        
+        // TODO: 业务逻辑
+        // 1. 创建额度申请记录
+        // 2. 初始化申请状态
+        // 3. 触发后续审批流程
+        
+        System.out.println("额度申请已提交");
+        
+        // 设置结果
+        ctx.setPass(true);
+    }
+}
+```
+
+### 步骤5: Controller接入
+
+在Controller中调用校验引擎：
+
+```java
+package com.example.check.controller;
+
+import com.example.check.common.Result;
+import com.example.check.common.WhiteListConfig;
+import com.example.check.core.InterfaceEngine;
+import com.example.check.dto.RequestDTO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/quota")
+@RequiredArgsConstructor
+public class QuotaController {
+
+    private final InterfaceEngine engine;
+
+    /**
+     * 普通额度申请 - 完整校验
+     */
+    @PostMapping("/apply")
+    public Result<?> applyQuota(@RequestBody RequestDTO request) {
+        // 普通请求，不使用白名单
+        return engine.execute("apply_quota", request, null);
+    }
+
+    /**
+     * 白名单额度申请 - 跳过部分校验
+     */
+    @PostMapping("/apply/vip")
+    public Result<?> applyQuotaForVip(@RequestBody RequestDTO request) {
+        // VIP白名单：跳过前3级校验，共5次机会
+        WhiteListConfig whiteList = new WhiteListConfig();
+        whiteList.setBreakLevel(3);
+        whiteList.setMaxCount(5);
+        
+        return engine.execute("apply_quota", request, whiteList);
+    }
+}
+```
+
+### 步骤6: 测试验证
+
+#### 6.1 单元测试
+
+```java
+package com.example.check;
+
+import com.example.check.common.WhiteListConfig;
+import com.example.check.common.Result;
+import com.example.check.core.InterfaceEngine;
+import com.example.check.dto.RequestDTO;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+class QuotaCheckTest {
+
+    @Autowired
+    private InterfaceEngine engine;
+
+    @Test
+    void testApplyQuota_Success() {
+        // 准备请求
+        RequestDTO request = new RequestDTO();
+        request.setUserId("1001");
+        request.setAmount(new BigDecimal("50000"));
+        
+        // 执行
+        Result<?> result = engine.execute("apply_quota", request, null);
+        
+        // 验证
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    void testApplyQuota_WhiteList() {
+        // 准备请求
+        RequestDTO request = new RequestDTO();
+        request.setUserId("1001");
+        request.setAmount(new BigDecimal("50000"));
+        
+        // 白名单配置
+        WhiteListConfig whiteList = new WhiteListConfig();
+        whiteList.setBreakLevel(2);
+        whiteList.setMaxCount(10);
+        
+        // 执行
+        Result<?> result = engine.execute("apply_quota", request, whiteList);
+        
+        // 验证
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    void testApplyQuota_ParamFail() {
+        // 准备请求 - 缺少必填参数
+        RequestDTO request = new RequestDTO();
+        // userId 未设置
+        
+        // 执行
+        Result<?> result = engine.execute("apply_quota", request, null);
+        
+        // 验证
+        assertFalse(result.isSuccess());
+        assertEquals("参数校验失败", result.getMsg());
+    }
+}
+```
+
+### 开发 Checklist
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        新接口开发 Checklist                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│ ☐ 1. 分析需求，确定接口名称和功能                                       │
+│                                                                         │
+│ ☐ 2. 确定参数列表                                                       │
+│     ☐ 必填参数                                                          │
+│     ☐ 可选参数                                                          │
+│     ☐ 参数类型和校验规则                                                │
+│                                                                         │
+│ ☐ 3. 确定校验链                                                         │
+│     ☐ 复用: PARAM_CHECK, AUTH_CHECK, RISK_CHECK, STATUS_CHECK         │
+│     ☐ 新增: _____________                                               │
+│                                                                         │
+│ ☐ 4. 确定处理链                                                         │
+│     ☐ 通用处理: logStart, contextFill                                   │
+│     ☐ 特殊处理: whiteListBreak (如需白名单)                             │
+│     ☐ 业务动作: _____________                                           │
+│                                                                         │
+│ ☐ 5. XML配置                                                            │
+│     ☐ 添加 interface 节点                                              │
+│     ☐ 配置 param-validate                                              │
+│     ☐ 配置 check-chain                                                 │
+│     ☐ 配置 handler 引用                                                │
+│                                                                         │
+│ ☐ 6. 如需新校验                                                         │
+│     ☐ 创建 XxxCheck.java                                               │
+│     ☐ 继承 AbstractCheck                                               │
+│     ☐ 实现 level() 和 doCheck()                                        │
+│     ☐ 添加 @Component("XXX_CHECK")                                     │
+│                                                                         │
+│ ☐ 7. 如需新Handler                                                      │
+│     ☐ 创建 XxxHandler.java                                             │
+│     ☐ 实现 Handler                                                      │
+│     ☐ 添加 @Component("xxx")                                          │
+│                                                                         │
+│ ☐ 8. Controller接入                                                     │
+│     ☐ 注入 InterfaceEngine                                             │
+│     ☐ 调用 execute() 方法                                              │
+│                                                                         │
+│ ☐ 9. 测试验证                                                           │
+│     ☐ 正常流程测试                                                      │
+│     ☐ 校验失败测试                                                      │
+│     ☐ 白名单测试                                                        │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 快速开发模板
+
+#### 模板1: 简单查询接口
+
+```xml
+<interface name="query_xxx">
+    <param-validate>
+        <field name="id" required="true"/>
+    </param-validate>
+    <common-process>
+        <handler>logStart</handler>
+    </common-process>
+    <check-chain>
+        <check>PARAM_CHECK</check>
+        <check>AUTH_CHECK</check>
+    </check-chain>
+    <biz-action>
+        <handler>queryXxx</handler>
+        <handler>logFinish</handler>
+    </biz-action>
+</interface>
+```
+
+#### 模板2: 重要业务接口 (需白名单)
+
+```xml
+<interface name="submit_xxx">
+    <param-validate>
+        <field name="userId" required="true"/>
+        <field name="amount" required="true" type="decimal"/>
+    </param-validate>
+    <common-process>
+        <handler>logStart</handler>
+        <handler>contextFill</handler>
+    </common-process>
+    <check-chain>
+        <check>PARAM_CHECK</check>
+        <check>AUTH_CHECK</check>
+        <check>RISK_CHECK</check>
+        <check>STATUS_CHECK</check>
+        <check>AMOUNT_CHECK</check>
+    </check-chain>
+    <special-process>
+        <handler>whiteListBreak</handler>
+    </special-process>
+    <biz-action>
+        <handler>submitXxx</handler>
+        <handler>logFinish</handler>
+    </biz-action>
+</interface>
+```
+
+### 开发文件清单
+
+| 步骤 | 操作 | 文件位置 |
+|------|------|----------|
+| 1 | 分析需求 | - |
+| 2 | XML配置 | `src/main/resources/interface-flow.xml` |
+| 3 | 复用校验 | 无需修改 |
+| 3 | 新增校验 | `checkimpl/XxxCheck.java` |
+| 4 | 业务处理 | `handlerimpl/XxxHandler.java` |
+| 5 | Controller | `controller/XxxController.java` |
+| 6 | 测试验证 | `test/...XxxTest.java` |
+
+---
+
 ## 总结
 
 该校验引擎是一个设计良好的金融系统请求校验框架，具有以下特点：
