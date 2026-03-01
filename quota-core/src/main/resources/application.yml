@@ -1,0 +1,122 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /quota-system
+
+spring:
+  application:
+    name: quota-system
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/quota_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: ${DATABASE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 30000
+      pool-name: QuotaHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Shanghai
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 6000ms
+      lettuce:
+        pool:
+          min-idle: 2
+          max-idle: 8
+          max-active: 16
+          max-wait: 2000ms
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 1
+
+  elasticsearch:
+    uris: http://localhost:9200
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=300s
+
+logging:
+  level:
+    root: INFO
+    com.bank.quota: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  file:
+    name: logs/quota-system/quota-system.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+app:
+  name: quota-system
+  version: 1.0.0
+  environment: development
+
+quota:
+  lock:
+    wait-time: 5
+    lease-time: 30
+  cache:
+    local-expire-seconds: 300
+    redis-expire-seconds: 600
+  audit:
+    enabled: true
+    async-enabled: true
+
+security:
+  encryption:
+    enabled: true
+    algorithm: AES-256
+  jwt:
+    enabled: true
+    secret: ${JWT_SECRET:your-256-bit-secret-key-here}
+    expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_CN
+    swagger-model-name: 实体类

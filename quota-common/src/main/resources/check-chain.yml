@@ -1,0 +1,55 @@
+# 校验链配置
+check:
+  chain:
+    # 是否启用默认校验链
+    default-enabled: true
+    # 是否启用简化校验链
+    simple-enabled: true
+    # 是否启用严格校验链
+    strict-enabled: false
+
+  # 参数校验配置
+  param:
+    enabled: true
+    required-params:
+      - amount
+      - userId
+
+  # 权限校验配置
+  auth:
+    enabled: true
+    required-role: ADMIN
+    check-ip: true
+    allowed-ips: 192.168.1.*,10.0.0.*
+
+  # 金额校验配置
+  amount:
+    enabled: true
+    min-amount: 1
+    max-amount: 1000000
+    single-limit: 50000
+    day-limit: 200000
+
+  # 风控校验配置
+  risk:
+    enabled: true
+    max-risk-level: 3
+    enable-real-time-check: true
+
+  # 频率校验配置
+  frequency:
+    enabled: true
+    max-requests-per-minute: 60
+    max-requests-per-hour: 1000
+    max-requests-per-day: 10000
+
+  # 时间校验配置
+  time:
+    enabled: true
+    start-time: "00:00:00"
+    end-time: "23:59:59"
+
+  # 白名单校验配置
+  whitelist:
+    enabled: true
+    default-rule-id: DEFAULT_WHITELIST

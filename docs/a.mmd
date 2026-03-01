@@ -1,0 +1,51 @@
+graph TB
+    subgraph "前端展示层"
+        A1[Web管理端]
+        A2[移动端]
+        A3[第三方系统]
+    end
+
+    subgraph "API网关层"
+        B1[统一鉴权]
+        B2[路由转发]
+        B3[限流熔断]
+        B4[日志记录]
+    end
+
+    subgraph "微服务层"
+        C1[额度查询服务]
+        C2[额度控制服务]
+        C3[风险预警服务]
+        C4[审计服务]
+        C5[额度计算服务]
+        C6[映射配置服务]
+        C7[系统管理服务]
+    end
+
+    subgraph "数据存储层"
+        D1[MySQL集群]
+        D2[Redis集群]
+        D3[RabbitMQ集群]
+        D4[ES集群]
+    end
+
+    subgraph "基础设施层"
+        E1[容器云平台]
+        E2[服务注册发现]
+        E3[配置中心]
+        E4[监控中心]
+    end
+
+    A1 & A2 & A3 --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 --> C1 & C2 & C3 & C4 & C5 & C6 & C7
+    C1 & C2 & C3 & C4 & C5 & C6 & C7 --> D1
+    C1 & C2 & C5 --> D2
+    C3 & C4 --> D3
+    C4 --> D4
+    C1 & C2 & C3 & C4 & C5 & C6 & C7 --> E1
+    E1 --> E2
+    E1 --> E3
+    E1 --> E4

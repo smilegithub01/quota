@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<interfaces>
+    <interface name="pre_check">
+        <param-validate>
+            <field name="userId" required="true"/>
+            <field name="amount" required="true" type="decimal" min="0.01"/>
+        </param-validate>
+        <common-process>
+            <handler>logStart</handler>
+            <handler>contextFill</handler>
+        </common-process>
+        <check-chain>
+            <check>PARAM_CHECK</check>
+            <check>AUTH_CHECK</check>
+            <check>STATUS_CHECK</check>
+        </check-chain>
+    </interface>
+
+    <interface name="submit">
+        <param-validate>
+            <field name="userId" required="true"/>
+            <field name="amount" required="true" type="decimal" min="0.01"/>
+            <field name="orderId" required="true" length="10,32"/>
+        </param-validate>
+        <common-process>
+            <handler>logStart</handler>
+            <handler>contextFill</handler>
+            <handler>authCheck</handler>
+        </common-process>
+        <check-chain>
+            <check>PARAM_CHECK</check>
+            <check>AUTH_CHECK</check>
+            <check>RISK_CHECK</check>
+            <check>STATUS_CHECK</check>
+            <check>AMOUNT_CHECK</check>
+        </check-chain>
+        <special-process>
+            <handler>whiteListBreak</handler>
+        </special-process>
+        <biz-action>
+            <handler>insertOrder</handler>
+            <handler>logFinish</handler>
+        </biz-action>
+    </interface>
+</interfaces>
