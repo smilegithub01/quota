@@ -5,9 +5,21 @@
     
     <mirrors>
         <mirror>
-            <id>aliyunmaven</id>
-            <mirrorOf>*</mirrorOf>
-            <name>阿里云公共仓库</name>
+            <id>aliyuncentral</id>
+            <mirrorOf>central</mirrorOf>
+            <name>Aliyun Central</name>
+            <url>https://maven.aliyun.com/repository/central</url>
+        </mirror>
+        <mirror>
+            <id>aliyunspring</id>
+            <mirrorOf>spring</mirrorOf>
+            <name>Aliyun Spring</name>
+            <url>https://maven.aliyun.com/repository/spring</url>
+        </mirror>
+        <mirror>
+            <id>aliyunpublic</id>
+            <mirrorOf>public</mirrorOf>
+            <name>Aliyun Public</name>
             <url>https://maven.aliyun.com/repository/public</url>
         </mirror>
     </mirrors>
@@ -17,25 +29,55 @@
             <id>aliyun</id>
             <repositories>
                 <repository>
-                    <id>aliyunmaven</id>
-                    <url>https://maven.aliyun.com/repository/public</url>
+                    <id>central</id>
+                    <url>https://maven.aliyun.com/repository/central</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
                     <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>spring</id>
+                    <url>https://maven.aliyun.com/repository/spring</url>
+                    <releases>
                         <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+                <repository>
+                    <id>spring-plugin</id>
+                    <url>https://maven.aliyun.com/repository/spring-plugin</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
                     </snapshots>
                 </repository>
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
-                    <id>aliyunmaven</id>
-                    <url>https://maven.aliyun.com/repository/public</url>
+                    <id>central</id>
+                    <url>https://maven.aliyun.com/repository/central</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
                     <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>spring</id>
+                    <url>https://maven.aliyun.com/repository/spring</url>
+                    <releases>
                         <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
                     </snapshots>
                 </pluginRepository>
             </pluginRepositories>
