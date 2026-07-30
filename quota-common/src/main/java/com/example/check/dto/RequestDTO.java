@@ -1,4 +1,4 @@
-﻿package com.example.check.dto;
+package com.example.check.dto;
 import lombok.Data;
 @Data
 public class RequestDTO {

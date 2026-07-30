@@ -1,4 +1,4 @@
-﻿package com.example.check.define;
+package com.example.check.define;
 import lombok.Data;
 @Data
 public class FieldRule {

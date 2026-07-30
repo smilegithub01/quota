@@ -88,7 +88,8 @@ public interface CreditApplicationRepository extends JpaRepository<CreditApplica
      * @param cutoffTime 截止时间
      * @return 超时的申请列表
      */
-    @Query("SELECT ca FROM CreditApplication ca WHERE (ca.status = com.bank.quota.core.enums.ApprovalStatus.SUBMITTED OR ca.status = com.bank.quota.core.enums.ApprovalStatus.UNDER_REVIEW) " +
+    @Query("SELECT ca FROM CreditApplication ca WHERE ca.status IN (:statuses) " +
            "AND ca.createTime < :cutoffTime")
-    List<CreditApplication> findTimeoutApplications(@Param("cutoffTime") java.time.LocalDateTime cutoffTime);
+    List<CreditApplication> findTimeoutApplications(@Param("statuses") List<ApprovalStatus> statuses,
+                                                     @Param("cutoffTime") java.time.LocalDateTime cutoffTime);
 }

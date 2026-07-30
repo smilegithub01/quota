@@ -2,6 +2,7 @@ package com.bank.quota.core.repository;
 
 import com.bank.quota.core.domain.ApprovalProcess;
 import com.bank.quota.core.enums.ApprovalStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -76,17 +77,15 @@ public interface ApprovalProcessRepository extends JpaRepository<ApprovalProcess
     
     /**
      * 查询指定审批人的历史审批记录
-     * 
+     *
      * @param approverId 审批人ID
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 审批流程列表
      */
     @Query("SELECT DISTINCT ap FROM ApprovalProcess ap WHERE ap.status IN ('APPROVED', 'REJECTED') " +
            "AND EXISTS (SELECT 1 FROM ApprovalNode an WHERE an.processId = ap.id AND an.approverId = :approverId)")
-    List<ApprovalProcess> findHistoricalApprovalsByApprover(@Param("approverId") String approverId, 
-                                                           @Param("offset") int offset, 
-                                                           @Param("limit") int limit);
+    List<ApprovalProcess> findHistoricalApprovalsByApprover(@Param("approverId") String approverId,
+                                                           Pageable pageable);
     
     /**
      * 统计审批人的各种状态流程数量

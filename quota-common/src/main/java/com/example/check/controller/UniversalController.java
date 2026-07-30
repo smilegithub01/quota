@@ -1,4 +1,4 @@
-﻿package com.example.check.controller;
+package com.example.check.controller;
 import com.example.check.core.InterfaceEngine;
 import com.example.check.common.Result;
 import com.example.check.common.WhiteListConfig;

@@ -661,7 +661,7 @@ public class QuotaLifecycleServiceImpl implements QuotaLifecycleService {
         
         // 记录生命周期事件
         recordLifecycleEvent(
-            customerQuota.id,
+            customerQuota.getId(),
             QuotaType.CUSTOMER,
             EventType.CREATE,
             request.getApprovalQuota(),
@@ -677,12 +677,12 @@ public class QuotaLifecycleServiceImpl implements QuotaLifecycleService {
                 AuditLog.AuditObjectType.CUSTOMER_QUOTA,
             "QUOTA_CREATE",
             request.getQuotaType(),
-            customerQuota.id.toString(),
+            customerQuota.getId().toString(),
             "额度创建：" + request.getApprovalQuota(),
             "SUCCESS"
         );
         
-        return buildLifecycleResponse(customerQuota.id, request.getQuotaType());
+        return buildLifecycleResponse(customerQuota.getId(), request.getQuotaType());
     }
     
     private QuotaLifecycleResponse createGroupQuota(QuotaCreateRequest request) {

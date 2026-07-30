@@ -1,4 +1,4 @@
-﻿package com.example.check.checkimpl;
+package com.example.check.checkimpl;
 
 import com.example.check.context.InvokeContext;
 import com.example.check.core.AbstractCheck;

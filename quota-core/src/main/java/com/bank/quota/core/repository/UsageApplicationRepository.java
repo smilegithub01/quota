@@ -88,7 +88,8 @@ public interface UsageApplicationRepository extends JpaRepository<UsageApplicati
      * @param cutoffTime 截止时间
      * @return 超时的申请列表
      */
-    @Query("SELECT ua FROM UsageApplication ua WHERE (ua.status = com.bank.quota.core.enums.UsageStatus.SUBMITTED OR ua.status = com.bank.quota.core.enums.UsageStatus.IN_REVIEW) " +
+    @Query("SELECT ua FROM UsageApplication ua WHERE ua.status IN (:statuses) " +
            "AND ua.createTime < :cutoffTime")
-    List<UsageApplication> findTimeoutApplications(@Param("cutoffTime") java.time.LocalDateTime cutoffTime);
+    List<UsageApplication> findTimeoutApplications(@Param("statuses") List<UsageStatus> statuses,
+                                                    @Param("cutoffTime") java.time.LocalDateTime cutoffTime);
 }
