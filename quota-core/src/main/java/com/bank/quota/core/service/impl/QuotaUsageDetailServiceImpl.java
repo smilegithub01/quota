@@ -7,6 +7,7 @@ import com.bank.quota.core.repository.QuotaUsageDetailRepository;
 import com.bank.quota.core.service.QuotaUsageDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -57,12 +58,9 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
     
     @Override
     public List<QuotaUsageDetailResponse> queryUsageDetailsWithPaging(QuotaUsageDetailQueryRequest request) {
-        log.debug("Querying quota usage details with paging: customerId={}, pageNum={}, pageSize={}", 
+        log.debug("Querying quota usage details with paging: customerId={}, pageNum={}, pageSize={}",
                 request.getCustomerId(), request.getPageNum(), request.getPageSize());
-        
-        // 计算偏移量
-        int offset = (request.getPageNum() - 1) * request.getPageSize();
-        
+
         // 构建查询条件
         List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByConditionsWithPaging(
                 request.getCustomerId(),
@@ -74,8 +72,7 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
                 request.getOperatorId(),
                 request.getStartDate(),
                 request.getEndDate(),
-                offset,
-                request.getPageSize()
+                PageRequest.of(request.getPageNum() - 1, request.getPageSize())
         );
         
         return details.stream()
@@ -115,7 +112,7 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
                         request.getEndDate()
                 ).stream()
                 .map(data -> QuotaUsageStatisticsResponse.UsageTypeSummary.builder()
-                        .usageType((String) data[0])
+                        .usageType(data[0] != null ? ((QuotaUsageType) data[0]).getCode() : null)
                         .count(((Number) data[1]).longValue())
                         .amount((BigDecimal) data[2])
                         .build())
@@ -196,12 +193,11 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
     
     @Override
     public List<QuotaUsageDetailResponse> getUsageDetailsByCustomer(Long customerId, Integer pageNum, Integer pageSize) {
-        log.debug("Getting quota usage details by customer: customerId={}, pageNum={}, pageSize={}", 
+        log.debug("Getting quota usage details by customer: customerId={}, pageNum={}, pageSize={}",
                 customerId, pageNum, pageSize);
-        
-        int offset = (pageNum - 1) * pageSize;
-        
-        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByCustomerIdWithPaging(customerId, offset, pageSize);
+
+        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByCustomerIdWithPaging(
+                customerId, PageRequest.of(pageNum - 1, pageSize));
         
         return details.stream()
                 .map(this::buildResponse)
@@ -210,12 +206,11 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
     
     @Override
     public List<QuotaUsageDetailResponse> getUsageDetailsByGroup(Long groupId, Integer pageNum, Integer pageSize) {
-        log.debug("Getting quota usage details by group: groupId={}, pageNum={}, pageSize={}", 
+        log.debug("Getting quota usage details by group: groupId={}, pageNum={}, pageSize={}",
                 groupId, pageNum, pageSize);
-        
-        int offset = (pageNum - 1) * pageSize;
-        
-        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByGroupIdWithPaging(groupId, offset, pageSize);
+
+        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByGroupIdWithPaging(
+                groupId, PageRequest.of(pageNum - 1, pageSize));
         
         return details.stream()
                 .map(this::buildResponse)
@@ -227,7 +222,7 @@ public class QuotaUsageDetailServiceImpl implements QuotaUsageDetailService {
         log.debug("Getting quota usage details by related id: relatedId={}, relatedType={}", 
                 relatedId, relatedType);
         
-        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByRelatedIdAndType(relatedId, relatedType);
+        List<QuotaUsageDetail> details = quotaUsageDetailRepository.findByRelatedIdAndRelatedType(relatedId, relatedType);
         
         return details.stream()
                 .map(this::buildResponse)

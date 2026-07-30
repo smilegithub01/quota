@@ -288,19 +288,19 @@ public class QuotaQueryServiceImpl implements QuotaQueryService {
             response.setUpdateTime(gq.getUpdateTime() != null ? gq.getUpdateTime().toString() : null);
         } else if (quota instanceof CustomerQuota) {
             CustomerQuota cq = (CustomerQuota) quota;
-            response.setQuotaId(cq.id);
+            response.setQuotaId(cq.getId());
             response.setQuotaType(quotaType);
-            response.setCustomerId(cq.customerId);
-            response.setGroupId(cq.groupId);
-            response.setCustomerName(cq.customerName);
-            response.setTotalQuota(cq.totalQuota);
-            response.setUsedQuota(cq.usedQuota);
-            response.setAvailableQuota(cq.availableQuota);
-            response.setLockedQuota(cq.lockedQuota);
-            response.setProductType(cq.productType);
-            response.setStatus(cq.status != null ? cq.status.name() : "UNKNOWN");
-            response.setCreateTime(cq.createTime != null ? cq.createTime.toString() : null);
-            response.setUpdateTime(cq.updateTime != null ? cq.updateTime.toString() : null);
+            response.setCustomerId(cq.getCustomerId());
+            response.setGroupId(cq.getGroupId());
+            response.setCustomerName(cq.getCustomerName());
+            response.setTotalQuota(cq.getTotalQuota());
+            response.setUsedQuota(cq.getUsedQuota());
+            response.setAvailableQuota(cq.getAvailableQuota());
+            response.setLockedQuota(cq.getLockedQuota());
+            response.setProductType(cq.getProductType());
+            response.setStatus(cq.getStatus() != null ? cq.getStatus().name() : "UNKNOWN");
+            response.setCreateTime(cq.getCreateTime() != null ? cq.getCreateTime().toString() : null);
+            response.setUpdateTime(cq.getUpdateTime() != null ? cq.getUpdateTime().toString() : null);
         } else if (quota instanceof ApprovalQuota) {
             ApprovalQuota aq = (ApprovalQuota) quota;
             response.setQuotaId(aq.id);

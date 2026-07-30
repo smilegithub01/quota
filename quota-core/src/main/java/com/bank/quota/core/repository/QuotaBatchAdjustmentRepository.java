@@ -3,6 +3,7 @@ package com.bank.quota.core.repository;
 import com.bank.quota.core.domain.QuotaBatchAdjustment;
 import com.bank.quota.core.domain.QuotaBatchAdjustmentDetail;
 import com.bank.quota.core.enums.AdjustmentStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,53 +25,45 @@ public interface QuotaBatchAdjustmentRepository extends JpaRepository<QuotaBatch
     
     /**
      * 根据状态查询批量调整
-     * 
+     *
      * @param status 状态
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 批量调整列表
      */
     @Query("SELECT qba FROM QuotaBatchAdjustment qba WHERE qba.status = :status ORDER BY qba.createTime DESC")
-    List<QuotaBatchAdjustment> findByStatus(@Param("status") String status, 
-                                            @Param("offset") int offset, 
-                                            @Param("limit") int limit);
+    List<QuotaBatchAdjustment> findByStatus(@Param("status") String status,
+                                            Pageable pageable);
     
     /**
      * 根据执行者ID查询批量调整
-     * 
+     *
      * @param executorId 执行者ID
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 批量调整列表
      */
     @Query("SELECT qba FROM QuotaBatchAdjustment qba WHERE qba.executorId = :executorId ORDER BY qba.createTime DESC")
-    List<QuotaBatchAdjustment> findByExecutorId(@Param("executorId") String executorId, 
-                                               @Param("offset") int offset, 
-                                               @Param("limit") int limit);
+    List<QuotaBatchAdjustment> findByExecutorId(@Param("executorId") String executorId,
+                                               Pageable pageable);
     
     /**
      * 根据状态和执行者ID查询批量调整
-     * 
+     *
      * @param status 状态
      * @param executorId 执行者ID
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 批量调整列表
      */
     @Query("SELECT qba FROM QuotaBatchAdjustment qba WHERE qba.status = :status AND qba.executorId = :executorId ORDER BY qba.createTime DESC")
-    List<QuotaBatchAdjustment> findByStatusAndExecutorId(@Param("status") String status, 
-                                                        @Param("executorId") String executorId, 
-                                                        @Param("offset") int offset, 
-                                                        @Param("limit") int limit);
+    List<QuotaBatchAdjustment> findByStatusAndExecutorId(@Param("status") String status,
+                                                        @Param("executorId") String executorId,
+                                                        Pageable pageable);
     
     /**
      * 查询所有批量调整（按ID倒序）
-     * 
-     * @param offset 偏移量
-     * @param limit 限制数量
+     *
+     * @param pageable 分页参数
      * @return 批量调整列表
      */
     @Query("SELECT qba FROM QuotaBatchAdjustment qba ORDER BY qba.id DESC")
-    List<QuotaBatchAdjustment> findAllByOrderByIdDesc(@Param("offset") int offset, 
-                                                     @Param("limit") int limit);
+    List<QuotaBatchAdjustment> findAllByOrderByIdDesc(Pageable pageable);
 }

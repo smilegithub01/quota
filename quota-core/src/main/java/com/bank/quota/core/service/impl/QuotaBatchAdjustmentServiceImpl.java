@@ -10,6 +10,7 @@ import com.bank.quota.core.repository.QuotaBatchAdjustmentRepository;
 import com.bank.quota.core.service.QuotaBatchAdjustmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -214,24 +215,21 @@ public class QuotaBatchAdjustmentServiceImpl implements QuotaBatchAdjustmentServ
     
     @Override
     public List<QuotaBatchAdjustmentResponse> getBatchAdjustments(String status, String executorId, Integer pageNum, Integer pageSize) {
-        // 计算偏移量
-        int offset = (pageNum - 1) * pageSize;
-        
         List<QuotaBatchAdjustment> batches;
         if (status != null && executorId != null) {
             // 根据状态和执行者查询
-            batches = quotaBatchAdjustmentRepository.findByStatusAndExecutorId(status, executorId, offset, pageSize);
+            batches = quotaBatchAdjustmentRepository.findByStatusAndExecutorId(status, executorId, PageRequest.of(pageNum - 1, pageSize));
         } else if (status != null) {
             // 根据状态查询
-            batches = quotaBatchAdjustmentRepository.findByStatus(status, offset, pageSize);
+            batches = quotaBatchAdjustmentRepository.findByStatus(status, PageRequest.of(pageNum - 1, pageSize));
         } else if (executorId != null) {
             // 根据执行者查询
-            batches = quotaBatchAdjustmentRepository.findByExecutorId(executorId, offset, pageSize);
+            batches = quotaBatchAdjustmentRepository.findByExecutorId(executorId, PageRequest.of(pageNum - 1, pageSize));
         } else {
             // 查询所有
-            batches = quotaBatchAdjustmentRepository.findAllByOrderByIdDesc(offset, pageSize);
+            batches = quotaBatchAdjustmentRepository.findAllByOrderByIdDesc(PageRequest.of(pageNum - 1, pageSize));
         }
-        
+
         return batches.stream()
                 .map(this::buildBatchResponse)
                 .collect(Collectors.toList());

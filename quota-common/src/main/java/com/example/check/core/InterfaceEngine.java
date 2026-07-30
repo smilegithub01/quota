@@ -1,4 +1,4 @@
-﻿package com.example.check.core;
+package com.example.check.core;
 
 import com.example.check.config.InterfaceConfig;
 import com.example.check.context.InvokeContext;

@@ -3,6 +3,7 @@ package com.bank.quota.core.repository;
 import com.bank.quota.core.domain.QuotaUsageDetail;
 import com.bank.quota.core.enums.BusinessType;
 import com.bank.quota.core.enums.QuotaUsageType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,16 +36,14 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
     
     /**
      * 根据客户ID和分页参数查询额度使用明细
-     * 
+     *
      * @param customerId 客户ID
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 额度使用明细列表
      */
     @Query("SELECT qud FROM QuotaUsageDetail qud WHERE qud.customerId = :customerId ORDER BY qud.createTime DESC")
-    List<QuotaUsageDetail> findByCustomerIdWithPaging(@Param("customerId") Long customerId, 
-                                                      @Param("offset") int offset, 
-                                                      @Param("limit") int limit);
+    List<QuotaUsageDetail> findByCustomerIdWithPaging(@Param("customerId") Long customerId,
+                                                      Pageable pageable);
     
     /**
      * 根据集团ID查询额度使用明细
@@ -56,16 +55,14 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
     
     /**
      * 根据集团ID和分页参数查询额度使用明细
-     * 
+     *
      * @param groupId 集团ID
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 额度使用明细列表
      */
     @Query("SELECT qud FROM QuotaUsageDetail qud WHERE qud.groupId = :groupId ORDER BY qud.createTime DESC")
-    List<QuotaUsageDetail> findByGroupIdWithPaging(@Param("groupId") Long groupId, 
-                                                   @Param("offset") int offset, 
-                                                   @Param("limit") int limit);
+    List<QuotaUsageDetail> findByGroupIdWithPaging(@Param("groupId") Long groupId,
+                                                   Pageable pageable);
     
     /**
      * 根据关联ID和类型查询额度使用明细
@@ -74,8 +71,8 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
      * @param relatedType 关联类型
      * @return 额度使用明细列表
      */
-    List<QuotaUsageDetail> findByRelatedIdAndType(@Param("relatedId") String relatedId, 
-                                                  @Param("relatedType") String relatedType);
+    List<QuotaUsageDetail> findByRelatedIdAndRelatedType(@Param("relatedId") String relatedId,
+                                                         @Param("relatedType") String relatedType);
     
     /**
      * 根据业务类型查询额度使用明细
@@ -139,7 +136,7 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
     
     /**
      * 根据多个条件查询额度使用明细（带分页）
-     * 
+     *
      * @param customerId 客户ID
      * @param groupId 集团ID
      * @param businessType 业务类型
@@ -149,8 +146,7 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
      * @param operatorId 操作员ID
      * @param startDate 开始日期
      * @param endDate 结束日期
-     * @param offset 偏移量
-     * @param limit 限制数量
+     * @param pageable 分页参数
      * @return 额度使用明细列表
      */
     @Query("SELECT qud FROM QuotaUsageDetail qud WHERE " +
@@ -173,8 +169,7 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
                                                       @Param("operatorId") String operatorId,
                                                       @Param("startDate") LocalDateTime startDate,
                                                       @Param("endDate") LocalDateTime endDate,
-                                                      @Param("offset") int offset,
-                                                      @Param("limit") int limit);
+                                                      Pageable pageable);
     
     /**
      * 根据多个条件统计额度使用明细数量
@@ -223,7 +218,7 @@ public interface QuotaUsageDetailRepository extends JpaRepository<QuotaUsageDeta
      * @return 使用类型统计信息列表
      */
     @Query("SELECT " +
-           "qud.usageType.code as usageType, " +
+           "qud.usageType as usageType, " +
            "COUNT(qud) as count, " +
            "SUM(qud.usageAmount) as amount " +
            "FROM QuotaUsageDetail qud WHERE " +

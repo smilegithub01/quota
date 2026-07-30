@@ -1,4 +1,4 @@
-﻿package com.example.check.validator;
+package com.example.check.validator;
 import com.example.check.define.FieldRule;
 import com.example.check.define.ParamValidate;
 import java.lang.reflect.Field;

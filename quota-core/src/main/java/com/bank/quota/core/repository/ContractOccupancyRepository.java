@@ -39,18 +39,21 @@ public interface ContractOccupancyRepository extends JpaRepository<ContractOccup
     
     List<ContractOccupancy> findByContractNoAndStatus(String contractNo, ContractOccupancy.OccupancyStatus status);
     
-    @Query("SELECT c FROM ContractOccupancy c WHERE c.status = :status AND c.expiryTime < :now")
+    @Query("SELECT c FROM ContractOccupancy c WHERE c.status = :status AND c.updateTime < :now")
     List<ContractOccupancy> findExpiredOccupancies(
             @Param("status") ContractOccupancy.OccupancyStatus status,
             @Param("now") LocalDateTime now);
     
     /**
      * 查找超时的占用锁定
-     * 
+     *
+     * @param status 占用状态
      * @param cutoffTime 截止时间
      * @return 超时的占用记录列表
      */
-    @Query("SELECT c FROM ContractOccupancy c WHERE c.status = com.bank.quota.core.domain.ContractOccupancy.OccupancyStatus.OCCUPIED " +
-           "AND c.occupyTime < :cutoffTime")
-    List<ContractOccupancy> findTimeoutOccupancies(@Param("cutoffTime") LocalDateTime cutoffTime);
+    @Query("SELECT c FROM ContractOccupancy c WHERE c.status = :status " +
+           "AND c.createTime < :cutoffTime")
+    List<ContractOccupancy> findTimeoutOccupancies(
+            @Param("status") ContractOccupancy.OccupancyStatus status,
+            @Param("cutoffTime") LocalDateTime cutoffTime);
 }

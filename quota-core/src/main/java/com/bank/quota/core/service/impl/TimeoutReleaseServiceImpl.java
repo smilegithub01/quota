@@ -81,7 +81,8 @@ public class TimeoutReleaseServiceImpl implements TimeoutReleaseService {
         LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(quotaTimeoutConfig.getOccupyLockTimeoutMinutes());
         
         // 查找超时的占用锁定
-        List<ContractOccupancy> timeoutOccupancies = contractOccupancyRepository.findTimeoutOccupancies(cutoffTime);
+        List<ContractOccupancy> timeoutOccupancies = contractOccupancyRepository.findTimeoutOccupancies(
+                ContractOccupancy.OccupancyStatus.OCCUPIED, cutoffTime);
         
         int releasedCount = 0;
         for (ContractOccupancy occupancy : timeoutOccupancies) {
@@ -119,8 +120,10 @@ public class TimeoutReleaseServiceImpl implements TimeoutReleaseService {
         LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(quotaTimeoutConfig.getApplicationTimeoutMinutes());
         
         // 查找超时的授信申请
-        List<CreditApplication> timeoutCreditApplications = creditApplicationRepository.findTimeoutApplications(cutoffTime);
-        List<UsageApplication> timeoutUsageApplications = usageApplicationRepository.findTimeoutApplications(cutoffTime);
+        List<CreditApplication> timeoutCreditApplications = creditApplicationRepository.findTimeoutApplications(
+                List.of(ApprovalStatus.SUBMITTED, ApprovalStatus.UNDER_REVIEW), cutoffTime);
+        List<UsageApplication> timeoutUsageApplications = usageApplicationRepository.findTimeoutApplications(
+                List.of(UsageStatus.SUBMITTED, UsageStatus.IN_REVIEW), cutoffTime);
         
         int releasedCount = 0;
         

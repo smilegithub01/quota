@@ -12,6 +12,7 @@ import com.bank.quota.core.repository.ApprovalProcessRepository;
 import com.bank.quota.core.service.ApprovalProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -204,15 +205,12 @@ public class ApprovalProcessServiceImpl implements ApprovalProcessService {
     
     @Override
     public List<ApprovalProcessResponse> getHistoricalApprovals(String approverId, Integer pageNum, Integer pageSize) {
-        log.debug("Getting historical approvals for approver: approverId={}, pageNum={}, pageSize={}", 
+        log.debug("Getting historical approvals for approver: approverId={}, pageNum={}, pageSize={}",
                 approverId, pageNum, pageSize);
-        
-        // 计算偏移量
-        int offset = (pageNum - 1) * pageSize;
-        
+
         List<ApprovalProcess> processes = approvalProcessRepository.findHistoricalApprovalsByApprover(
-                approverId, offset, pageSize);
-        
+                approverId, PageRequest.of(pageNum - 1, pageSize));
+
         List<ApprovalProcessResponse> responses = new ArrayList<>();
         for (ApprovalProcess process : processes) {
             List<ApprovalNode> nodes = approvalNodeRepository.findByProcessIdOrderByNodeSequenceAsc(process.getId());
